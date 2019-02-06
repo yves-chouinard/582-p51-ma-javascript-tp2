@@ -1,0 +1,3 @@
+class Chanson {
+    constructor(titre)
+}
