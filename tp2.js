@@ -60,7 +60,7 @@ window.addEventListener('load', () => {
       On trouve la div du genre où ajouter la chanson, ou encore on la crée s'il s'agit de la première chanson de ce genre.
     */
     
-    const selecteurGenre = selecteurCollection + " [data-genre='" + genre + "']";
+    const selecteurGenre = selecteurCollection + " [data-genre='" + chanson.genre + "']";
 
     if ($(selecteurGenre).length == 0) {
       ajouterGenre(selecteurCollection, chanson.genre);
@@ -87,7 +87,7 @@ window.addEventListener('load', () => {
     Ajout d'un genre dans les divs accordéons correspondant au sélecteur passé en paramètre. Le paramètre genre est le nom du genre en texte.
   */
   
-  function ajouterGenre(divCollection, genre) {
+  function ajouterGenre(selecteurCollection, genre) {
     /* Nom du genre dans le h2 */
     const h2 = document.createElement('h2');
     h2.appendChild(document.createTextNode(genre));
