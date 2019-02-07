@@ -45,61 +45,57 @@ window.addEventListener('load', () => {
   */
   
   function construireCollection(selecteurCollection, collection) {
-    /* Ajout de chacune des chansons à la div de la collection */
+    $(selecteurCollection)
+      .html('')
+      .accordion({ header: "h2" });
+    
     for (const chanson of collection) {
       ajouterChanson(selecteurCollection, chanson);
     }
-    
-    /* Présentation en accordéons jQuery */
-    $(selecteurCollection).accordion({ header: "h2" });  
-    $(".chansons").accordion({ header: "h3" });
   }
   
   function ajouterChanson(selecteurCollection, chanson) {
     /*
-      On trouve la div du genre où ajouter la chanson, ou encore on la crée s'il s'agit de la première chanson de ce genre.
+      Sélecteur pour trouver la div du genre où ajouter la chanson :
+      #collection div[data-genre='Pop rock']
     */
     
-    const selecteurGenre = selecteurCollection + " [data-genre='" + chanson.genre + "']";
+    const selecteurGenre = selecteurCollection + " div[data-genre='" + chanson.genre + "']";
 
+    /*
+      Ajout du genre dans l'accordéon de la collection si c'est la première chanson de ce genre. Le texte du titre h2 est le nom du genre, tandis que la div est elle-même un accordéon avec la liste des chansons de ce genre.
+    */
+    
     if ($(selecteurGenre).length == 0) {
-      ajouterGenre(selecteurCollection, chanson.genre);
+      $(selecteurCollection)
+        .append(
+          $('<h2>').text(chanson.genre),
+          $('<div>')
+            .attr('data-genre', chanson.genre)
+            .accordion({ header: "h3" })
+        )
+        .accordion("refresh");
     }
+   
+    /*
+      Ajout de la chanson dans l'accordéon du bon genre
+    */
     
-    /* Titre et artiste de la chanson dans le h3 */
-    const h3 = document.createElement('h3');
-    const texte = chanson.titre + " - " + chanson.artiste;
-    h3.appendChild(document.createTextNode(texte));
-
-    /* Détails de la chanson dans la div, vide pour l'instant */
-    const divChanson = document.createElement('div');
-
-    /* Ajout du h3 et de la div à l'accordéon */
-    divGenre.appendChild(h3);
-    divGenre.appendChild(divChanson);
-  }
-  
-  function trouverGenre(divCollection, genre) {
-    return divCollection.querySelector("[data-genre='" + genre + "']");
-  }
-  
-  /*
-    Ajout d'un genre dans les divs accordéons correspondant au sélecteur passé en paramètre. Le paramètre genre est le nom du genre en texte.
-  */
-  
-  function ajouterGenre(selecteurCollection, genre) {
-    /* Nom du genre dans le h2 */
-    const h2 = document.createElement('h2');
-    h2.appendChild(document.createTextNode(genre));
-
-    /* Liste des chansons dans la div, vide pour l'instant */
-    const divGenre = document.createElement('div');
-    divGenre.dataset.genre = genre;
-
-    /* Ajout du h2 et de la div à l'accordéon */
-    divCollection.appendChild(h2);   
-    divCollection.appendChild(divGenre);
-    
-    return divGenre;
-  }
+    $(selecteurGenre)
+      .append(
+        $('<h3>').text(chanson.titre + " - " + chanson.artiste),
+        $('<div>').append(
+          $('<ul>').append(
+            $('<li>').text('Titre : ' + chanson.titre),
+            $('<li>').text('Durée : ' + chanson.duree),
+            $('<li>').text('Album : ' + chanson.album),
+            $('<li>').text('Artiste : ' + chanson.artiste),
+            $('<li>').text('Genre : ' + chanson.genre),
+            $('<li>').text('Date de sortie : ' + chanson.dateSortie),
+            $('<li>').text('Pays : ' + chanson.pays)
+          )
+        )
+      )
+      .accordion("refresh");
+  }  
 });
