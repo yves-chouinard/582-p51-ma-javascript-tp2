@@ -16,15 +16,23 @@ export class Collection {
     $(this.selecteurCollection)
       .html('')
       .append(
-        this.creerFormulaireAjout(),
+        this.creerDivAjout(),
         this.creerAccordeonGenres()
       );
     
     for (const chanson of this.chansons) {
-      this.afficherChanson(chanson);
+      if (!this.genrePresent(chanson.genre)) {
+        this.insererGenre(chanson.genre);
+      }
+      
+      this.insererChanson(chanson);
     }
   }
 
+  genrePresent(genre) {
+    return $(this.selecteurAccordeonChansons(genre)).length > 0;
+  }
+  
   /*
     Ajoute une chanson dans le bon accordéon de chansons selon le genre de la chanson. S'il s'agit de la première chanson de ce genre, ajoute préalablement le genre dans l'accordéon des genres.
   */
@@ -49,19 +57,23 @@ export class Collection {
       .accordion("refresh");
   }  
 
-  creerFormulaireAjout() {
-    return $('<form>');
+  creerDivAjout() {
+    return $('<div>').append(
+      $('<div class="boutons">').append(
+        this.creerBoutonAjouter()
+      )
+    );
   }
   
   creerAccordeonGenres() {
     return $('<div class="accordeon-genres">')
-      .accordion({ header: "h2", heightStyle: "content" })
+      .accordion({ header: "h2", heightStyle: "content" });
   }
   
   creerAccordeonChansons(genre) {
     return $('<div class="accordeon-chansons">')
       .attr('data-genre', genre)
-      .accordion({ header: "h3", heightStyle: "content" })
+      .accordion({ header: "h3", heightStyle: "content" });
   }
 
   creerDivDetailsChanson(chanson) {
@@ -76,9 +88,35 @@ export class Collection {
           $('<li>').text('Date de sortie : ' + chanson.dateSortie),
           $('<li>').text('Pays : ' + chanson.pays)
         ),
-        $('<button>').text('Modifier'),
-        $('<button>').text('Supprimer')
+        $('<div class="boutons>').append(
+          this.creerBoutonModifier(chanson.id),
+          this.creerBoutonSupprimer(chanson.id)
+        )
       );
+  }
+  
+  creerBoutonAjouter() {
+    return $('<button>')
+      .text('Ajouter')
+      .on('click', () => {
+          alert("Ajouter");
+      });
+  }
+  
+  creerBoutonModifier(idChanson) {
+    return $('<button>')
+      .text('Modifier')
+      .on('click', () => {
+          alert("Modifier chanson " + idChanson);
+      });
+  }
+  
+  creerBoutonSupprimer(idChanson) {
+    return $('<button>')
+      .text('Supprimer')
+      .on('click', () => {
+          alert("Supprimer chanson " + idChanson);
+      });
   }
   
   selecteurAccordeonGenres() {
