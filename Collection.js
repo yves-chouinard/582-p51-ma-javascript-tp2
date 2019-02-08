@@ -4,65 +4,94 @@
 
 export class Collection {
   constructor(selecteur) {
-    this.selecteur = selecteur;
+    this.selecteurCollection = selecteur;
     this.chansons = [];
   }
 
+  /*
+    Affiche le formulaire d'ajout suivi de l'accordéon des genres, celui-ci étant composé des accordéons de chansons de chacun des genres. Les chansons sont disposées dans les bons accordéons.
+  */
+  
   afficher() {
-    $(this.selecteur)
+    $(this.selecteurCollection)
       .html('')
-      .accordion({ header: "h2", heightStyle: "content" });
+      .append(
+        this.creerFormulaireAjout(),
+        this.creerAccordeonGenres()
+      );
     
     for (const chanson of this.chansons) {
       this.afficherChanson(chanson);
     }
   }
 
+  /*
+    Ajoute une chanson dans le bon accordéon de chansons selon le genre de la chanson. S'il s'agit de la première chanson de ce genre, ajoute préalablement le genre dans l'accordéon des genres.
+  */
+  
   afficherChanson(chanson) {
-    /*
-      Sélecteur pour trouver la div du genre où ajouter la chanson :
-      #collection div[data-genre='Pop rock']
-    */
-    
-    const selecteurGenre = this.selecteur + " div[data-genre='" + chanson.genre + "']";
-
-    /*
-      Ajout du genre dans l'accordéon de la collection si c'est la première chanson de ce genre. Le texte du titre h2 est le nom du genre, tandis que la div est elle-même un accordéon avec la liste des chansons de ce genre.
-    */
-    
-    if ($(selecteurGenre).length == 0) {
-      $(this.selecteur)
+    /* Ajout du genre dans l'accordéon des genres si nécessaire */
+    if ($(this.selecteurAccordeonChansons(chanson.genre)).length == 0) {
+      $(this.selecteurAccordeonGenres())
         .append(
           $('<h2>').text(chanson.genre),
-          $('<div>')
-            .attr('data-genre', chanson.genre)
-            .accordion({ header: "h3", heightStyle: "content" })
+          this.creerAccordeonChansons(chanson.genre)
         )
         .accordion("refresh");
     }
    
-    /*
-      Ajout de la chanson dans l'accordéon du bon genre
-    */
-    
-    $(selecteurGenre)
+    /* Ajout de la chanson dans l'accordéon de chansons du bon genre */
+    $(this.selecteurAccordeonChansons(chanson.genre))
       .append(
         $('<h3>').text(chanson.titre + " - " + chanson.artiste),
-        $('<div>').append(
-          $('<ul>').append(
-            $('<li>').text('Titre : ' + chanson.titre),
-            $('<li>').text('Durée : ' + chanson.duree),
-            $('<li>').text('Album : ' + chanson.album),
-            $('<li>').text('Artiste : ' + chanson.artiste),
-            $('<li>').text('Genre : ' + chanson.genre),
-            $('<li>').text('Date de sortie : ' + chanson.dateSortie),
-            $('<li>').text('Pays : ' + chanson.pays)
-          )
-        )
+        this.creerDivDetailsChanson(chanson)
       )
       .accordion("refresh");
   }  
 
+  creerFormulaireAjout() {
+    return $('<form>');
+  }
+  
+  creerAccordeonGenres() {
+    return $('<div class="accordeon-genres">')
+      .accordion({ header: "h2", heightStyle: "content" })
+  }
+  
+  creerAccordeonChansons(genre) {
+    return $('<div class="accordeon-chansons">')
+      .attr('data-genre', genre)
+      .accordion({ header: "h3", heightStyle: "content" })
+  }
+
+  creerDivDetailsChanson(chanson) {
+    return $('<div class="details-chanson">')
+      .append(
+        $('<ul>').append(
+          $('<li>').text('Titre : ' + chanson.titre),
+          $('<li>').text('Durée : ' + chanson.duree),
+          $('<li>').text('Album : ' + chanson.album),
+          $('<li>').text('Artiste : ' + chanson.artiste),
+          $('<li>').text('Genre : ' + chanson.genre),
+          $('<li>').text('Date de sortie : ' + chanson.dateSortie),
+          $('<li>').text('Pays : ' + chanson.pays)
+        ),
+        $('<button>').text('Modifier'),
+        $('<button>').text('Supprimer')
+      );
+  }
+  
+  selecteurAccordeonGenres() {
+    return this.selecteurCollection + " div.accordeon-genres";
+  }
+  
+  selecteurAccordeonChansons(genre) {
+    return (
+      this.selecteurAccordeonGenres() +
+      " div[data-genre='" + genre + "']"
+    );
+  }
+  
   lireChansons() {
     this.chansons = [
       {
