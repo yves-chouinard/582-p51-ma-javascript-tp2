@@ -11,24 +11,29 @@
 
 switch ($_SERVER['REQUEST_METHOD']) {
   case 'GET':
-    if (empty($_GET[''id''])) {
+    if (empty($_GET['id'])) {
       echo json_encode(lireChansons());
     }
     else {
-      echo json_encode(lireChanson($_GET[''id'']))
+      echo json_encode(lireChanson($_GET['id']));
     }
     
     break;
   
   case 'POST':
     $json = file_get_contents("php://input");
+    print_r($_POST);
+    die;
+    $chanson = (object) [];
     $chanson = json_decode($json);
+    print_r($chanson);
+    die;
     enregistrerChanson($chanson);
     echo "{}";
     break;
     
   case 'DELETE':
-    supprimerChanson($_GET[''id'']);
+    supprimerChanson($_GET['id']);
     echo "{}";
     break;
 }
@@ -86,8 +91,8 @@ function lireChansons() {
   Lit dans la BD les détails d'une chanson selon son 'id' et les retourne sous la forme d'un objet.
 */
 
-function lireChanson($'id') {
-  return {};
+function lireChanson($id) {
+  return (object) [];
 }
 
 /*
@@ -95,12 +100,12 @@ function lireChanson($'id') {
 */
 
 function enregistrerChanson($chanson) {
+  print_r($chanson);
 }
 
 /*
   Supprime dans la BD une chanson spécifiée par son 'id'.
 */
 
-function supprimerChanson($'id') {
-  
+function supprimerChanson($id) {
 }

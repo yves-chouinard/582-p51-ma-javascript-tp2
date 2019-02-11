@@ -3,11 +3,36 @@
 */
 
 export class Collection {
+  /*
+    Le contructeur fait la requête AJAX pour obtenir toutes les chansons. La fonction afficher() sera appelée à la réception de la réponse. Le paramètre est le sélecteur de l'élément HTML ou afficher la collection.
+  */
+  
   constructor(selecteur) {
     this.selecteurCollection = selecteur;
-    this.chansons = [];
+    this.lireChansons();
   }
 
+  /*
+    Envoie la requête AJAX pour lire toutes les chansons de la BD. Affiche la collection à la réception de la réponse.
+  */
+  
+  lireChansons() {
+    var self = this;
+    
+    $.ajax({
+        url: 'collection.php',
+        type: 'GET',
+        dataType: 'json',
+        success: function(chansons) {
+          self.afficher(chansons);
+        }
+    });
+  }
+  
+  /*
+    Retourne la div contenant la collection sous forme d'élément jQuery.
+  */
+  
   collection() {
     return $(this.selecteurCollection);
   }
@@ -16,7 +41,7 @@ export class Collection {
     Affiche le formulaire d'ajout suivi de l'accordéon des genres, celui-ci étant composé des accordéons de chansons de chacun des genres. Les chansons sont disposées dans les bons accordéons.
   */
   
-  afficher() {
+  afficher(chansons) {
     this.collection()
       .empty()
       .append(
@@ -24,7 +49,7 @@ export class Collection {
         this.creerAccordeonGenres()
       );
     
-    for (const chanson of this.chansons) {
+    for (const chanson of chansons) {
       if (!this.genrePresent(chanson.genre)) {
         this.insererGenre(chanson.genre);
       }
@@ -140,7 +165,7 @@ export class Collection {
   }
   
   /*
-    Formulaire permettant de modifier les détails de la chanson dont l'id est passé en paramètre. Un id de zéro signifie qu'il s'agit de l'ajout d'une nouvelle chansons.
+    Formulaire permettant de modifier les détails de la chanson dont l'id est passé en paramètre. Un id de zéro signifie qu'il s'agit de l'ajout d'une nouvelle chansons. La soumission entraine une requête AJAX d'enregistrement de la chanson.
   */
   
   creerFormDetailsChanson(idChanson) {
@@ -148,6 +173,7 @@ export class Collection {
       .attr('data-id', idChanson)
       .hide()
       .append(
+        $('<input type="hidden" name="id">').val(toString(idChanson)),
         $('<fieldset>')
           .append(
             $('<legend>').text("Détails de la chanson"),
@@ -179,7 +205,7 @@ export class Collection {
             $('<p>')
               .append(
                 $('<label>').text("Date de sortie"),
-                $('<input type="date" name="date-sortie" required>')
+                $('<input type="date" name="dateSortie" required>')
               ),
             $('<p>')
               .append(
@@ -199,31 +225,38 @@ export class Collection {
           )
       )
       .submit(event => {
-        let form = this.formDetailsChanson(idChanson).hide();
+        let form = this.formDetailsChanson(idChanson);
+        let donneesForm = form.serializeArray();
+        let self = this;
+      
+        form.hide();
+        event.preventDefault();
+      
+        console.log(donneesForm);
+
         let chanson = {};
       
+        for (const o of donneesForm) {
+          console.log(o);
+          chanson[o.name] = o.value;
+        }
+      
+        console.log(chanson);
+        this.enregistrerChanson(form.serializeArray());
+      
+/*
         $.ajax({
             url: 'collection.php',
             type: 'POST',
-            data: form.serialize(),
+            data: JSON.stringify(form.serializeArray()),
             contentType: 'application/json; charset=utf-8',
             dataType: 'json',
-            success: function(msg) {
+            success: function(chanson) {
+              self.insererChanson(chanson);
             }
         });
-//        chanson.id = Number(form.attr('data-id'));
-//        chanson.titre = form.find('input[name="titre"]').val();
-//        chanson.duree = form.find('input[name="duree"]').val();
-//        chanson.album = form.find('input[name="album"]').val();
-//        chanson.artiste = form.find('input[name="artiste"]').val();
-//        chanson.genre = form.find('input[name="genre"]').val();
-//        chanson.dateSortie = form.find('input[name="date-sortie"]').val();
-//        chanson.pays = form.find('input[name="pays"]').val();
-//
-//        this.enregistrerChanson(chanson); // Ajout dans la BD
-        this.insererChanson(chanson); // Ajout dans l'accordéon
+*/
       
-        event.preventDefault();
       });
   }
   
@@ -273,75 +306,18 @@ export class Collection {
       });
   }
   
-  lireChansons() {
-//    this.chansons = [
-//      {
-//        id: 1,
-//        titre: "Tom Sawyer",
-//        duree: "4:34",
-//        album: "Moving Pictures",
-//        artiste: "Rush",
-//        genre: "Rock",
-//        dateSortie: "1981-02-12",
-//        pays: "Canada"
-//      },
-//      {
-//        id: 2,
-//        titre: "Where the Streets Have No Name",
-//        duree: "5:38",
-//        album: "The Joshua Tree",
-//        artiste: "U2",
-//        genre: "Rock",
-//        dateSortie: "1987-03-09",
-//        pays: "Irlande"
-//      },
-//      {
-//        id: 3,
-//        titre: "Hey Jude",
-//        duree: "7:11",
-//        album: "Hey Jude",
-//        artiste: "The Beatles",
-//        genre: "Pop rock",
-//        dateSortie: "1968-08-26",
-//        pays: "Angleterre"
-//      },
-//      {
-//        id: 4,
-//        titre: "Hey Jude",
-//        duree: "7:11",
-//        album: "Hey Jude",
-//        artiste: "The Beatles",
-//        genre: "Pop rock",
-//        dateSortie: "1968-08-26",
-//        pays: "Angleterre"
-//      }
-//    ];
-  
-    $.ajax({
-        url: 'collection.php',
-        type: 'GET',
-        data: '',
-        dataType: 'json',
-        async: false,
-        success: function(msg) {
-        }
-    });
-    
-    console.log(this.chansons);
-    return this.chansons;
-  }
-  
   enregistrerChanson(chanson) {
+    var self = this;
+    
     $.ajax({
         url: 'collection.php',
         type: 'POST',
         data: JSON.stringify(chanson),
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
-        success: function(msg) {
+        success: function(chanson) {
+          self.insererChanson(chanson);
         }
     });
-
-    return this.chansons;
   }
 }

@@ -4,14 +4,9 @@
   Février 2019
 */
 
-
-import {Collection} from './Collection.js';
-
+import {Collection} from './collection.js';
 
 window.addEventListener('load', () => {
   var collection = new Collection('#collection');
-  
-  collection.lireChansons();
-  collection.afficher();
 });
 
