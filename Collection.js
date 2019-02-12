@@ -48,7 +48,7 @@ export class Collection {
         $('<div class="boutons">')
           .append(
             /* Bouton ajouter chanson */
-            $('<button>')
+            $('<button class="ajouter">')
               .text('Ajouter')
               .click(() => {
                 /* Vider et faire apparaitre le formulaire d'ajout */
@@ -68,7 +68,12 @@ export class Collection {
   
   creerAccordeonGenres() {
     return $('<div class="accordeon-genres">')
-      .accordion({ header: "h2", heightStyle: "content" });
+      .accordion({
+        header: "h2",
+        heightStyle: "content",
+        collapsible: true,
+        active: false
+      });
   }
   
   /*
@@ -91,7 +96,7 @@ export class Collection {
           .attr('data-genre', genre),
         this.creerAccordeonChansons(genre)
       )
-      .accordion("refresh");    
+      .accordion("refresh");
   }
   
   /*
@@ -109,8 +114,13 @@ export class Collection {
   creerAccordeonChansons(genre) {
     return $('<div class="accordeon-chansons">')
       .attr('data-genre', genre)
-      .accordion({ header: "h3", heightStyle: "content" });
-  }
+      .accordion({
+        header: "h3", 
+        heightStyle: "content",
+        collapsible: true,
+        active: false
+      });
+}
 
   /*
     Retourne l'accordéon de chansons d'un genre donné en tant qu'élément jQuery. Le paramètre est le nom du genre en texte.
@@ -127,8 +137,8 @@ export class Collection {
   */
   
   insererChanson(chanson) {
-    if (this.chansonPresente(chanson.id)) {
-      this.retirerChanson(chanson.id);
+    if (this.chansonPresente(chanson)) {
+      this.retirerChanson(chanson);
     }
     
     if (!this.genrePresent(chanson.genre)) {
@@ -149,16 +159,22 @@ export class Collection {
     Vérifie si une chanson est présente dans l'accordéon. Retourne true ou false.
   */
   
-  chansonPresente(id) {
-    return $('[data-id="' + id + '"]').length;
+  chansonPresente(chanson) {
+    return $('[data-id="' + chanson.id + '"]').length;
   }
   
   /*
-    Retire une chanson de l'accordéon.
+    Retire une chanson de l'accordéon. Retire aussi le genre de l'accordéon s'il s'agissait de la dernière chanson de ce genre.
   */
   
-  retirerChanson(id) {
-    $('[data-id="' + id + '"]').remove();
+  retirerChanson(chanson) {
+    $('[data-id="' + chanson.id + '"]').remove();
+    this.accordeonChansons(chanson.genre).accordion("refresh");
+    
+    if (this.accordeonChansons(chanson.genre).children().length == 0) {
+      $('[data-genre="' + chanson.genre + '"]').remove();
+      this.accordeonGenres().accordion("refresh");
+    }
   }
   
   /*
@@ -182,7 +198,7 @@ export class Collection {
         /* Div boutons */
         $('<div class="boutons">').append(
           /* Bouton modifier */
-          $('<button>')
+          $('<button class="modifier">')
             .text('Modifier')
             .click(() => {
               /* Remplir et montrer le formulaire de modification */
@@ -197,10 +213,10 @@ export class Collection {
               form.find('input[name="pays"]').val(chanson.pays);
             }),
           /* Bouton supprimer */
-          $('<button>')
+          $('<button class="supprimer">')
             .text('Supprimer')
             .click(() => {
-              this.supprimerChanson(chanson.id);
+              this.supprimerChanson(chanson);
             })
         ),
         /* Formulaire de modification, caché à la création */
@@ -330,16 +346,16 @@ export class Collection {
     Envoie la requête AJAX pour supprimer une chanson. Retire la chanson de l'accordéon à la réception de la réponse.
   */
   
-  supprimerChanson(id) {
+  supprimerChanson(chanson) {
     var self = this;
     
     $.ajax({
         url: 'collection.php',
         type: 'DELETE',
-        data: 'id=' + id, 
+        data: 'id=' + chanson.id,
         dataType: 'json',
         success: function(chansons) {
-          self.retirerChanson(id);
+          self.retirerChanson(chanson);
         }
     });
   }

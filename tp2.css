@@ -1,0 +1,56 @@
+body {
+  font-family: Arial,Helvetica,sans-serif;
+  font-size: 100%;
+  color: #333;
+}
+
+button {
+  width: 100px;
+  height: 35px;
+  background-color: white;
+  border-color: #333;
+  color: #333;
+  font-size: 100%;
+  border-radius: 4px;
+  margin: 10px 0;
+  transition: 0.2s;
+}
+
+button:hover {
+  color: white;
+  background-color: #333;  
+}
+
+button:not(:last-child) {
+  margin-right: 10px;
+}
+
+button.ajouter, button.modifier {
+  color: #ffa200;
+  border-color: #e6a32e;
+  background-color: white;
+}
+
+button.ajouter:hover, button.modifier:hover {
+  background-color: #ffa200;
+  color: white;
+}
+
+button.supprimer {
+  color: #ff2200;
+  border-color: #e6472e;
+  background-color: white;
+}
+
+button.supprimer:hover {
+  background-color: #ff2200;
+  color: white;
+}
+
+label {
+  display: block;
+}
+
+input {
+  width: 100%;
+}
