@@ -9,103 +9,34 @@
   DELETE - suppression d'une chanson en particulier
 */
 
+require('modele-collection.php');
+
+$modele = new ModeleCollection();
+
 switch ($_SERVER['REQUEST_METHOD']) {
   case 'GET':
     if (empty($_GET['id'])) {
-      echo json_encode(lireChansons());
+      $chansons = $modele->lireChansons();
+      echo json_encode($chansons);
     }
     else {
-      echo json_encode(lireChanson($_GET['id']));
+      $chanson = $modele->lireChanson($_GET['id']);
+      echo json_encode($chanson);
     }
     
     break;
   
   case 'POST':
     $json = file_get_contents("php://input");
-    print_r($_POST);
-    die;
-    $chanson = (object) [];
     $chanson = json_decode($json);
-    print_r($chanson);
-    die;
-    enregistrerChanson($chanson);
-    echo "{}";
+    $chanson = $modele->enregistrerChanson($chanson);
+    echo json_encode($chanson);
     break;
     
   case 'DELETE':
-    supprimerChanson($_GET['id']);
+    $chaine = file_get_contents("php://input");
+    parse_str($chaine, $params);
+    $modele->supprimerChanson($params['id']);
     echo "{}";
     break;
-}
-
-/*
-  Lit toutes les chansons dans la BD et les retourne sous la forme d'un tableau d'objets.
-*/
-
-function lireChansons() {
-  return [
-    (object) [
-      'id' => 1,
-      'titre' => "Tom Sawyer",
-      'duree' => "4:34",
-      'album' => "Moving Pictures",
-      'artiste' => "Rush",
-      'genre' => "Rock",
-      'dateSortie' => "1981-02-12",
-      'pays' => "Canada"
-    ],
-    (object) [
-      'id' => 2,
-      'titre' => "Where the Streets Have No Name",
-      'duree' => "5:38",
-      'album' => "The Joshua Tree",
-      'artiste' => "U2",
-      'genre' => "Rock",
-      'dateSortie' => "1987-03-09",
-      'pays' => "Irlande"
-    ],
-    (object) [
-      'id' => 3,
-      'titre' => "Hey Jude",
-      'duree' => "7:11",
-      'album' => "Hey Jude",
-      'artiste' => "The Beatles",
-      'genre' => "Pop rock",
-      'dateSortie' => "1968-08-26",
-      'pays' => "Angleterre"
-    ],
-    (object) [
-      'id' => 4,
-      'titre' => "Hey Jude",
-      'duree' => "7:11",
-      'album' => "Hey Jude",
-      'artiste' => "The Beatles",
-      'genre' => "Pop rock",
-      'dateSortie' => "1968-08-26",
-      'pays' => "Angleterre"
-    ]
-  ];
-}
-
-/*
-  Lit dans la BD les détails d'une chanson selon son 'id' et les retourne sous la forme d'un objet.
-*/
-
-function lireChanson($id) {
-  return (object) [];
-}
-
-/*
-  Enregistre dans la BD les détails d'une chanson selon son 'id'. Si l''id' est nul ou non spécifié, il s'agit d'un ajout.
-*/
-
-function enregistrerChanson($chanson) {
-  print_r($chanson);
-}
-
-/*
-  Supprime dans la BD une chanson spécifiée par son 'id'.
-*/
-
-function supprimerChanson($id) {
 }

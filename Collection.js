@@ -13,23 +13,6 @@ export class Collection {
   }
 
   /*
-    Envoie la requête AJAX pour lire toutes les chansons de la BD. Affiche la collection à la réception de la réponse.
-  */
-  
-  lireChansons() {
-    var self = this;
-    
-    $.ajax({
-        url: 'collection.php',
-        type: 'GET',
-        dataType: 'json',
-        success: function(chansons) {
-          self.afficher(chansons);
-        }
-    });
-  }
-  
-  /*
     Retourne la div contenant la collection sous forme d'élément jQuery.
   */
   
@@ -50,23 +33,32 @@ export class Collection {
       );
     
     for (const chanson of chansons) {
-      if (!this.genrePresent(chanson.genre)) {
-        this.insererGenre(chanson.genre);
-      }
-      
       this.insererChanson(chanson);
     }
   }
 
   /*
-    Crée la division contenant le bouton et le formulaire d'ajout de chanson. Le bouton d'ajout est dans une sous-div "boutons". Le formulaire d'ajout est le même que le formulaire de modification, mais avec un id de chanson nul.
+    Crée la division contenant le bouton et le formulaire d'ajout de chanson. Le bouton d'ajout est dans une sous-div "boutons". Il vide le formulaire d'ajout et le fait apparaitre. Le formulaire d'ajout est le même que le formulaire de modification, mais avec un id de chanson nul.
   */
   
   creerDivAjoutChanson() {
     return $('<div class="ajout-chanson">')
       .append(
-        $('<div class="boutons">').append(this.creerBoutonAjouter()),
-        this.creerFormAjoutChanson()
+        /* Div boutons */
+        $('<div class="boutons">')
+          .append(
+            /* Bouton ajouter chanson */
+            $('<button>')
+              .text('Ajouter')
+              .click(() => {
+                /* Vider et faire apparaitre le formulaire d'ajout */
+                this.formDetailsChanson(0)
+                  .show()
+                  .find('input:not([type="hidden"])').val('')
+              })
+          ),
+        /* Formulaire d'ajout de chanson, caché à la création */
+        this.creerFormDetailsChanson(0)
       );
   }
   
@@ -94,7 +86,9 @@ export class Collection {
   insererGenre(genre) {
     this.accordeonGenres()
       .append(
-        $('<h2>').text(genre),
+        $('<h2>')
+          .text(genre)
+          .attr('data-genre', genre),
         this.creerAccordeonChansons(genre)
       )
       .accordion("refresh");    
@@ -129,25 +123,53 @@ export class Collection {
   }
   
   /*
-    Ajoute une chanson dans le bon accordéon de chansons selon le genre de la chanson.
+    Ajoute une chanson dans le bon accordéon de chansons selon le genre de la chanson. Ajoute le genre dans l'accordéon des genres s'il s'agit de la première chanson de ce genre.
   */
   
   insererChanson(chanson) {
+    if (this.chansonPresente(chanson.id)) {
+      this.retirerChanson(chanson.id);
+    }
+    
+    if (!this.genrePresent(chanson.genre)) {
+      this.insererGenre(chanson.genre);
+    }
+    
     this.accordeonChansons(chanson.genre)
       .append(
-        $('<h3>').text(chanson.titre + " - " + chanson.artiste),
+        $('<h3>')
+          .text(chanson.titre + " - " + chanson.artiste)
+          .attr('data-id', chanson.id),
         this.creerDivDetailsChanson(chanson)
       )
       .accordion("refresh");
   }  
 
   /*
+    Vérifie si une chanson est présente dans l'accordéon. Retourne true ou false.
+  */
+  
+  chansonPresente(id) {
+    return $('[data-id="' + id + '"]').length;
+  }
+  
+  /*
+    Retire une chanson de l'accordéon.
+  */
+  
+  retirerChanson(id) {
+    $('[data-id="' + id + '"]').remove();
+  }
+  
+  /*
     La div des détails d'une chanson contient la liste des attributs de la chanson et une div boutons avec le bouton modifier et le bouton supprimer.
   */
   
   creerDivDetailsChanson(chanson) {
     return $('<div class="details-chanson">')
+      .attr('data-id', chanson.id)
       .append(
+        /* Détails de la chanson */
         $('<ul>').append(
           $('<li>').text('Titre : ' + chanson.titre),
           $('<li>').text('Durée : ' + chanson.duree),
@@ -157,10 +179,32 @@ export class Collection {
           $('<li>').text('Date de sortie : ' + chanson.dateSortie),
           $('<li>').text('Pays : ' + chanson.pays)
         ),
+        /* Div boutons */
         $('<div class="boutons">').append(
-          this.creerBoutonModifier(chanson.id),
-          this.creerBoutonSupprimer(chanson.id)
-        )
+          /* Bouton modifier */
+          $('<button>')
+            .text('Modifier')
+            .click(() => {
+              /* Remplir et montrer le formulaire de modification */
+              let form = this.formDetailsChanson(chanson.id);
+              form.show();
+              form.find('input[name="titre"]').val(chanson.titre);
+              form.find('input[name="duree"]').val(chanson.duree);
+              form.find('input[name="album"]').val(chanson.album);
+              form.find('input[name="artiste"]').val(chanson.artiste);
+              form.find('input[name="genre"]').val(chanson.genre);
+              form.find('input[name="dateSortie"]').val(chanson.dateSortie);
+              form.find('input[name="pays"]').val(chanson.pays);
+            }),
+          /* Bouton supprimer */
+          $('<button>')
+            .text('Supprimer')
+            .click(() => {
+              this.supprimerChanson(chanson.id);
+            })
+        ),
+        /* Formulaire de modification, caché à la création */
+        this.creerFormDetailsChanson(chanson.id)
       );
   }
   
@@ -173,7 +217,7 @@ export class Collection {
       .attr('data-id', idChanson)
       .hide()
       .append(
-        $('<input type="hidden" name="id">').val(toString(idChanson)),
+        $('<input type="hidden" name="id">').val(idChanson),
         $('<fieldset>')
           .append(
             $('<legend>').text("Détails de la chanson"),
@@ -205,7 +249,7 @@ export class Collection {
             $('<p>')
               .append(
                 $('<label>').text("Date de sortie"),
-                $('<input type="date" name="dateSortie" required>')
+                $('<input type="text" name="dateSortie" required>')
               ),
             $('<p>')
               .append(
@@ -225,43 +269,17 @@ export class Collection {
           )
       )
       .submit(event => {
-        let form = this.formDetailsChanson(idChanson);
-        let donneesForm = form.serializeArray();
-        let self = this;
-      
-        form.hide();
-        event.preventDefault();
-      
-        console.log(donneesForm);
-
+        let form = this.formDetailsChanson(idChanson);      
         let chanson = {};
       
-        for (const o of donneesForm) {
-          console.log(o);
-          chanson[o.name] = o.value;
+        for (const paire of form.serializeArray()) {
+          chanson[paire.name] = paire.value;
         }
       
-        console.log(chanson);
-        this.enregistrerChanson(form.serializeArray());
-      
-/*
-        $.ajax({
-            url: 'collection.php',
-            type: 'POST',
-            data: JSON.stringify(form.serializeArray()),
-            contentType: 'application/json; charset=utf-8',
-            dataType: 'json',
-            success: function(chanson) {
-              self.insererChanson(chanson);
-            }
-        });
-*/
-      
+        this.enregistrerChanson(chanson);      
+        form.hide();
+        event.preventDefault();
       });
-  }
-  
-  creerFormAjoutChanson() {
-    return this.creerFormDetailsChanson(0);
   }
   
   /*
@@ -272,39 +290,26 @@ export class Collection {
     return $('form.details-chanson[data-id="' + idChanson + '"]');
   }
   
-  formAjoutChanson() {
-    return this.formDetailsChanson(0);
+  /*
+    Envoie la requête AJAX pour lire toutes les chansons de la BD. Affiche la collection à la réception de la réponse.
+  */
+  
+  lireChansons() {
+    var self = this;
+    
+    $.ajax({
+        url: 'collection.php',
+        type: 'GET',
+        dataType: 'json',
+        success: function(chansons) {
+          self.afficher(chansons);
+        }
+    });
   }
   
   /*
-    Le bouton Ajouter vide les champs du formulaire d'ajout de chanson et le fait apparaitre.
+    Envoie la requête AJAX pour l'enregistrement d'une chanson dans la DB. Si l'id de la chanson est nul, il s'agit d'un ajout; sinon c'est une modification. La chanson est ajoutée ou mise à jour dans l'accordéon à la réception de la réponse.
   */
-  
-  creerBoutonAjouter() {
-    return $('<button>')
-      .text('Ajouter')
-      .click(() => {
-        this.formAjoutChanson()
-          .show()
-          .find('input').val('')
-      });
-  }
-  
-  creerBoutonModifier(idChanson) {
-    return $('<button>')
-      .text('Modifier')
-      .click(() => {
-          alert("Modifier chanson " + idChanson);
-      });
-  }
-  
-  creerBoutonSupprimer(idChanson) {
-    return $('<button>')
-      .text('Supprimer')
-      .click(() => {
-          alert("Supprimer chanson " + idChanson);
-      });
-  }
   
   enregistrerChanson(chanson) {
     var self = this;
@@ -317,6 +322,24 @@ export class Collection {
         dataType: 'json',
         success: function(chanson) {
           self.insererChanson(chanson);
+        }
+    });
+  }
+
+  /*
+    Envoie la requête AJAX pour supprimer une chanson. Retire la chanson de l'accordéon à la réception de la réponse.
+  */
+  
+  supprimerChanson(id) {
+    var self = this;
+    
+    $.ajax({
+        url: 'collection.php',
+        type: 'DELETE',
+        data: 'id=' + id, 
+        dataType: 'json',
+        success: function(chansons) {
+          self.retirerChanson(id);
         }
     });
   }
