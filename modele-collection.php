@@ -31,7 +31,7 @@ class ModeleCollection {
   
   function __construct() {
     $this->pdo = new PDO(
-      'mysql:host=localhost;dbname=collection', "root", "root"
+      'mysql:host=localhost;dbname=e1795915', "e1795915", "nj4dgHxaI5xpuQevK2pI"
     );
     
     $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
